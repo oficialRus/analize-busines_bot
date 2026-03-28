@@ -1,6 +1,6 @@
 # Geo Analysis Dashboard
 
-MVP-интерфейс панели геоаналитики на **Next.js 14+**, **TypeScript**, **Tailwind CSS**, **shadcn/ui** (примитивы Radix + стили), **Zustand**. Данные и карта — заглушки, без API и без провайдера карты.
+MVP-интерфейс панели геоаналитики на **Next.js 14+**, **TypeScript**, **Tailwind CSS**, **shadcn/ui** (примитивы Radix + стили), **react-hook-form**, **Zod**. Данные и карта — заглушки, без API и без провайдера карты.
 
 ## Требования
 
@@ -40,7 +40,7 @@ cp .env.example .env.local
 | `features/analysis/` | Боковая панель параметров и история запросов |
 | `features/map/` | Заглушка карты |
 | `features/results/` | Панель результатов |
-| `store/` | Zustand (`selectedLocation`, `uiStatus`) |
+| `store/` | Зарезервировано под будущее состояние (сейчас не используется) |
 | `types/` | Общие типы домена |
 | `lib/` | Утилиты и mock-данные |
 

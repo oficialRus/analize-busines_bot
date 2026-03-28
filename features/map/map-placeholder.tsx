@@ -9,12 +9,13 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { useDashboardStore } from "@/store/dashboard-store";
 import { cn } from "@/lib/utils";
 
-export function MapPlaceholder() {
-  const selectedLocation = useDashboardStore((s) => s.selectedLocation);
+export interface MapPlaceholderProps {
+  previewLine: string | null;
+}
 
+export function MapPlaceholder({ previewLine }: MapPlaceholderProps) {
   return (
     <Card
       className={cn(
@@ -55,10 +56,10 @@ export function MapPlaceholder() {
           <p className="mt-2 text-sm text-muted-foreground">
             Здесь появится интерактивная карта, слои и выбор зоны анализа.
           </p>
-          {selectedLocation ? (
+          {previewLine ? (
             <p className="mt-4 rounded-md border border-dashed border-primary/40 bg-primary/5 px-3 py-2 text-sm text-foreground">
-              Выбрано:{" "}
-              <span className="font-medium">{selectedLocation.name}</span>
+              Последний запрос:{" "}
+              <span className="font-medium break-all">{previewLine}</span>
             </p>
           ) : null}
         </div>

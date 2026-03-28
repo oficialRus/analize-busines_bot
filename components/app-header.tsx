@@ -4,11 +4,13 @@ import { MapPin } from "lucide-react";
 
 import { StatusBadge } from "@/components/status-badge";
 import { Separator } from "@/components/ui/separator";
-import { useDashboardStore } from "@/store/dashboard-store";
+import type { AnalysisStatus } from "@/types";
 
-export function AppHeader() {
-  const uiStatus = useDashboardStore((s) => s.uiStatus);
+export interface AppHeaderProps {
+  uiStatus: AnalysisStatus;
+}
 
+export function AppHeader({ uiStatus }: AppHeaderProps) {
   return (
     <header className="sticky top-0 z-10 border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80">
       <div className="flex h-14 items-center gap-3 px-4">
