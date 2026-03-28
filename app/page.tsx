@@ -1,40 +1,91 @@
 "use client";
 
-import { useCallback, useState } from "react";
+import { useCallback, useRef, useState } from "react";
 
 import { AppHeader } from "@/components/app-header";
 import { AnalysisSidebar } from "@/features/analysis/analysis-sidebar";
 import { HistoryPanel } from "@/features/analysis/history-panel";
 import { MapPlaceholder } from "@/features/map/map-placeholder";
-import { ResultsPanel } from "@/features/results/results-panel";
+import {
+  ResultsPanel,
+  type ResultsPanelPhase,
+} from "@/features/results/results-panel";
 import type { AnalysisPayload } from "@/lib/analysis-request-schema";
-import { buildMockSubmitResult } from "@/lib/mock-submit-result";
 import { formatMapPreviewLine } from "@/lib/map-preview";
+import {
+  buildMockErrorMessage,
+  buildMockGeoResponse,
+  isMockErrorPayload,
+} from "@/lib/mock-geo-response";
+import { formatErrorDebugJson, formatResultsDebugJson } from "@/lib/results-debug";
 import type { AnalysisStatus } from "@/types";
+import type { GeoQueryResponse } from "@/lib/mock-geo-response";
+
+const MOCK_DELAY_MS = 550;
 
 export default function Home() {
+  const loadTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const [phase, setPhase] = useState<ResultsPanelPhase>("idle");
   const [debugJson, setDebugJson] = useState<string | null>(null);
   const [uiStatus, setUiStatus] = useState<AnalysisStatus>("idle");
   const [mapPreview, setMapPreview] = useState<string | null>(null);
-  const [mockKey, setMockKey] = useState(0);
-  const [mockResult, setMockResult] = useState<
-    ReturnType<typeof buildMockSubmitResult> | null
-  >(null);
+  const [cardKey, setCardKey] = useState(0);
+  const [response, setResponse] = useState<GeoQueryResponse | null>(null);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
-  const handleValidatedSubmit = useCallback((payload: AnalysisPayload) => {
-    setDebugJson(JSON.stringify(payload, null, 2));
-    setMockResult(buildMockSubmitResult(payload));
-    setMockKey((k) => k + 1);
-    setMapPreview(formatMapPreviewLine(payload));
-    setUiStatus("success");
+  const clearTimer = useCallback(() => {
+    if (loadTimerRef.current !== null) {
+      clearTimeout(loadTimerRef.current);
+      loadTimerRef.current = null;
+    }
   }, []);
+
+  const handleValidatedSubmit = useCallback(
+    (payload: AnalysisPayload) => {
+      clearTimer();
+      setPhase("loading");
+      setDebugJson(null);
+      setResponse(null);
+      setErrorMessage(null);
+      setUiStatus("loading");
+      setCardKey((k) => k + 1);
+
+      loadTimerRef.current = setTimeout(() => {
+        loadTimerRef.current = null;
+
+        if (isMockErrorPayload(payload)) {
+          const message = buildMockErrorMessage();
+          setErrorMessage(message);
+          setResponse(null);
+          setDebugJson(formatErrorDebugJson(payload, { message }));
+          setPhase("ready");
+          setUiStatus("error");
+          setMapPreview(formatMapPreviewLine(payload));
+          return;
+        }
+
+        const mockResponse = buildMockGeoResponse(payload);
+        setResponse(mockResponse);
+        setErrorMessage(null);
+        setDebugJson(formatResultsDebugJson(payload, mockResponse));
+        setPhase("ready");
+        setUiStatus("success");
+        setMapPreview(formatMapPreviewLine(payload));
+      }, MOCK_DELAY_MS);
+    },
+    [clearTimer],
+  );
 
   const handleFormReset = useCallback(() => {
+    clearTimer();
+    setPhase("idle");
     setDebugJson(null);
-    setMockResult(null);
+    setResponse(null);
+    setErrorMessage(null);
     setMapPreview(null);
     setUiStatus("idle");
-  }, []);
+  }, [clearTimer]);
 
   return (
     <div className="flex min-h-screen flex-col bg-background font-sans">
@@ -52,9 +103,11 @@ export default function Home() {
           </section>
           <section className="flex min-h-0 flex-col md:col-span-2 lg:col-span-3">
             <ResultsPanel
+              phase={phase}
+              errorMessage={errorMessage}
+              response={response}
               debugJson={debugJson}
-              mockResult={mockResult}
-              mockKey={mockKey}
+              cardKey={cardKey}
             />
           </section>
         </div>

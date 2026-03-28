@@ -12,19 +12,22 @@ import { cn } from "@/lib/utils";
 
 export interface DebugCardProps {
   json: string | null;
+  /** Пока ждём mock-ответ после submit */
+  pending?: boolean;
   className?: string;
 }
 
-export function DebugCard({ json, className }: DebugCardProps) {
+export function DebugCard({ json, pending = false, className }: DebugCardProps) {
   return (
     <Card className={cn("flex min-h-0 flex-col", className)}>
       <CardHeader className="pb-2">
         <div className="flex items-center gap-2">
           <Braces className="size-4 text-muted-foreground" />
-          <CardTitle className="text-base">DebugCard</CardTitle>
+          <CardTitle className="text-base">JSON (запрос + ответ)</CardTitle>
         </div>
         <CardDescription>
-          Payload после валидации (без отправки на сервер).
+          Полный объект для отладки; с backend придёт та же форма в поле{" "}
+          <code className="text-xs">response</code>.
         </CardDescription>
       </CardHeader>
       <CardContent className="p-4 pt-0">
@@ -34,6 +37,10 @@ export function DebugCard({ json, className }: DebugCardProps) {
               {json}
             </pre>
           </ScrollArea>
+        ) : pending ? (
+          <p className="text-sm text-muted-foreground">
+            Формируется mock-ответ…
+          </p>
         ) : (
           <p className="text-sm text-muted-foreground">
             Отправьте форму, чтобы увидеть JSON.
