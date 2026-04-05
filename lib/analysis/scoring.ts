@@ -110,7 +110,7 @@ export function rankTopOpportunityZones(
     rank: i + 1,
     cellId: c.id,
     score: c.score,
-    label: `${cityLabel}: ячейка ${c.id} — конкурентов: ${c.competitorsCount}, score ${c.score}`,
+    label: `${cityLabel}: ячейка ${c.id} — конкурентов: ${c.competitorsCount}`,
     centerLat: c.centerLat,
     centerLon: c.centerLon,
     shortRecommendation: c.recommendation.shortRecommendation,

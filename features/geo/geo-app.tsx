@@ -111,6 +111,7 @@ export function GeoApp() {
 
   const analysisAvailable = provider === "2gis";
   const cityLabel = selectedCity ? cityOptionShortLabel(selectedCity) : "";
+  const analysisBbox = selectedCity ? cityOptionToBoundingBox(selectedCity) : null;
 
   return (
     <div className="flex min-h-screen flex-col bg-background font-sans">
@@ -151,6 +152,7 @@ export function GeoApp() {
                   <div className="flex flex-col gap-4 xl:col-span-4">
                     <AnalysisForm
                       cityLabel={cityLabel}
+                      analysisBbox={analysisBbox}
                       analysisAvailable={analysisAvailable}
                       submitting={analysisLoading}
                       onSubmit={runAnalysis}

@@ -1,11 +1,14 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { estimateGridCellCount, suggestCellSizeMetersForMaxCells } from "@/lib/analysis/grid";
+import { GRID_LIMITS, getMaxGridCellsClientHint } from "@/lib/analysis/limits";
+import type { BoundingBox } from "@/types/geo";
 
 import { cn } from "@/lib/utils";
 
@@ -19,6 +22,8 @@ export type AnalysisFormProps = {
   className?: string;
   /** Краткое название выбранного города (только отображение). */
   cityLabel: string;
+  /** Bbox выбранного города — для оценки числа ячеек до запуска. */
+  analysisBbox: BoundingBox | null;
   /** Для 2GIS — форма активна; для Яндекс.Карт анализ конкурентов недоступен. */
   analysisAvailable: boolean;
   submitting: boolean;
@@ -28,6 +33,7 @@ export type AnalysisFormProps = {
 export function AnalysisForm({
   className,
   cityLabel,
+  analysisBbox,
   analysisAvailable,
   submitting,
   onSubmit,
@@ -35,6 +41,18 @@ export function AnalysisForm({
   const [query, setQuery] = useState("");
   const [cellSizeMeters, setCellSizeMeters] = useState("1000");
   const [radiusMeters, setRadiusMeters] = useState("700");
+
+  const maxCellsHint = getMaxGridCellsClientHint();
+
+  const gridHint = useMemo(() => {
+    if (!analysisBbox) return null;
+    const cell = Number.parseFloat(cellSizeMeters.trim().replace(",", "."));
+    if (!Number.isFinite(cell)) return null;
+    const n = estimateGridCellCount(analysisBbox, cell);
+    if (n == null) return { kind: "invalid" as const };
+    const suggest = suggestCellSizeMetersForMaxCells(analysisBbox, maxCellsHint);
+    return { kind: "count" as const, n, suggest };
+  }, [analysisBbox, cellSizeMeters, maxCellsHint]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -97,6 +115,30 @@ export function AnalysisForm({
                 />
               </div>
             </div>
+            {gridHint?.kind === "count" && gridHint.n > maxCellsHint ? (
+              <p className="rounded-md border border-amber-500/35 bg-amber-500/10 px-3 py-2 text-sm leading-snug text-amber-100/95">
+                При шаге <strong>{cellSizeMeters.trim() || "…"}</strong> м по границам города выйдет{" "}
+                <strong>~{gridHint.n}</strong> ячеек (лимит {maxCellsHint} запросов к 2GIS за раз).
+                Поле «Радиус поиска» на это число <strong>не влияет</strong>
+                {gridHint.suggest != null ? (
+                  <>
+                    . Поставьте размер сетки не меньше <strong>{gridHint.suggest}</strong> м (или больше).
+                  </>
+                ) : (
+                  <>.</>
+                )}
+              </p>
+            ) : null}
+            {gridHint?.kind === "count" && gridHint.n <= maxCellsHint ? (
+              <p className="text-xs text-muted-foreground">
+                Оценка: ~{gridHint.n} ячеек (максимум {maxCellsHint}).
+              </p>
+            ) : null}
+            {gridHint?.kind === "invalid" ? (
+              <p className="text-xs text-muted-foreground">
+                Размер сетки: целое число от {GRID_LIMITS.MIN_CELL_METERS} до {GRID_LIMITS.MAX_CELL_METERS} м.
+              </p>
+            ) : null}
             <Button type="submit" disabled={submitting || !query.trim()}>
               {submitting ? "Выполняется…" : "Запустить анализ"}
             </Button>

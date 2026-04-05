@@ -1,4 +1,4 @@
-import { TwoGisClient } from "./client";
+import { TwoGisClient, getTwoGisMaxPageSize } from "./client";
 import { TwoGisClientError } from "./errors";
 import { mapTwoGisItemsToCompetitors } from "./mapper";
 import type { CompetitorItem } from "@/types/analysis";
@@ -9,7 +9,7 @@ export type TwoGisSearchParams = {
   lon: number;
   /** Радиус в метрах (как в Places API, вместе с текстовым запросом до 40 000). */
   radius: number;
-  /** Не больше 50 (ограничение API на page_size). */
+  /** Верхняя граница — см. getTwoGisMaxPageSize() (демо: 10, полный ключ: DGIS_MAX_PAGE_SIZE). */
   limit?: number;
 };
 
@@ -33,14 +33,15 @@ export async function searchCompetitorsTwoGis(
   const apiKey = requireApiKey();
   const client = new TwoGisClient({ apiKey });
 
-  const limit = params.limit ?? 50;
+  const maxPs = getTwoGisMaxPageSize();
+  const limit = params.limit ?? maxPs;
   const response = await client.searchItems({
     q: params.query.trim(),
     lon: params.lon,
     lat: params.lat,
     radius: params.radius,
     page: 1,
-    pageSize: Math.min(Math.max(limit, 1), 50),
+    pageSize: Math.min(Math.max(limit, 1), maxPs),
   });
 
   return mapTwoGisItemsToCompetitors(response.result.items);
