@@ -1,24 +1,19 @@
-export interface Location {
-  id: string;
-  name: string;
-  lat: number;
-  lng: number;
-  region?: string;
-}
+/** Точка входа для импорта `@/types` — тематические модули ниже. */
 
-export type AnalysisStatus = "idle" | "loading" | "success" | "error";
+export type {
+  AnalysisApiErrorResponse,
+  AnalysisHistoryListItem,
+  AnalyzedGridCell,
+  CellRecommendation,
+  CellRecommendationKind,
+  CityGridAnalysisInput,
+  CityGridAnalysisResult,
+  CompetitorItem,
+  CompetitorSourceProvider,
+  GridCell,
+  TopZone,
+} from "./analysis";
 
-export interface AnalysisResult {
-  id: string;
-  locationId: string;
-  score: number;
-  summary: string;
-  generatedAt: string;
-}
+export type { AnalysisProvider } from "./provider";
 
-export interface HistoryEntry {
-  id: string;
-  query: string;
-  createdAt: string;
-  status: AnalysisStatus;
-}
+export type { BoundingBox, CityOption, Coordinates } from "./geo";

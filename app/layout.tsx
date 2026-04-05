@@ -15,8 +15,8 @@ const geistMono = localFont({
 });
 
 export const metadata: Metadata = {
-  title: "Geo Analysis — панель",
-  description: "Дашборд геоаналитики (MVP, mock-данные)",
+  title: "Геоаналитика — город и районы",
+  description: "Поиск города и список районов по данным OpenStreetMap",
 };
 
 export default function RootLayout({
